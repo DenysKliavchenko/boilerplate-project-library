@@ -4,6 +4,7 @@ const express     = require('express');
 const bodyParser  = require('body-parser');
 const cors        = require('cors');
 require('dotenv').config();
+const mongoose    = require('mongoose');
 
 const apiRoutes         = require('./routes/api.js');
 const fccTestingRoutes  = require('./routes/fcctesting.js');
@@ -11,9 +12,23 @@ const runner            = require('./test-runner');
 
 const app = express();
 
+// Побудова URI з частин .env або використання готового DB
+const {
+  DB, dbuser, dbpw, dbhost, dbname
+} = process.env;
+
+const mongoUri =
+  DB ||
+  `mongodb+srv://${encodeURIComponent(dbuser)}:${encodeURIComponent(dbpw)}@${dbhost}/${dbname}?retryWrites=true&w=majority`;
+
+mongoose
+  .connect(mongoUri)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
 app.use('/public', express.static(process.cwd() + '/public'));
 
-app.use(cors({origin: '*'})); //USED FOR FCC TESTING PURPOSES ONLY!
+app.use(cors({origin: '*'})); // FCC
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -53,4 +68,4 @@ const listener = app.listen(process.env.PORT || 3000, function () {
   }
 });
 
-module.exports = app; //for unit/functional testing
+module.exports = app;
